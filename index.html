@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מעקב מטבעות קריפטו</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <div id="app" class="p-4 max-w-6xl mx-auto">
+        <div class="tabs">
+            <div class="tabs-list mb-4">
+                <button class="tab-trigger active" data-tab="add">הוספת עסקה</button>
+                <button class="tab-trigger" data-tab="history">היסטוריה</button>
+                <button class="tab-trigger" data-tab="summary">סיכום</button>
+                <button class="tab-trigger" data-tab="alerts">התראות</button>
+            </div>
+
+            <div class="tab-content active" id="add">
+                <div class="grid-2">
+                    <div class="card">
+                        <h3 class="text-lg font-medium mb-4">הוספת עסקה חדשה</h3>
+                        <form id="transaction-form">
+                            <div class="flex gap-4">
+                                <select id="type" class="form-select" required>
+                                    <option value="">סוג עסקה</option>
+                                    <option value="buy">קנייה</option>
+                                    <option value="sell">מכירה</option>
+                                </select>
+
+                                <select id="coin" class="form-select" required>
+                                    <option value="">בחר מטבע</option>
+                                </select>
+                            </div>
+
+                            <input type="number" id="amount" class="form-input" placeholder="כמות מטבעות" step="any" required>
+                            <input type="number" id="totalPrice" class="form-input" placeholder="מחיר כולל (USD)" step="any" required>
+                            <input type="date" id="date" class="form-input" required>
+
+                            <button type="submit" class="btn-primary w-full">הוסף עסקה</button>
+                        </form>
+                    </div>
+
+                    <div class="card">
+                        <h3 class="text-lg font-medium mb-4">הוספת מטבע חדש</h3>
+                        <form id="new-coin-form">
+                            <input type="text" id="newCoinSymbol" class="form-input" placeholder="סמל המטבע (למשל: BTC)" required>
+                            <button type="submit" class="btn-primary w-full">הוסף מטבע</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="history">
+                <div class="card">
+                    <div class="card-content">
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr>
+                                        <th class="text-right p-2">תאריך</th>
+                                        <th class="text-right p-2">מטבע</th>
+                                        <th class="text-right p-2">סוג עסקה</th>
+                                        <th class="text-right p-2">כמות</th>
+                                        <th class="text-right p-2">מחיר כולל</th>
+                                        <th class="text-right p-2">מחיר ליחידה</th>
+                                        <th class="text-right p-2">פעולות</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="history-table">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="summary">
+                <div class="card">
+                    <div class="card-content">
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr>
+                                        <th class="text-right p-2">מטבע</th>
+                                        <th class="text-right p-2">ממוצע קנייה</th>
+                                        <th class="text-right p-2">ממוצע מכירה</th>
+                                        <th class="text-right p-2">סה"כ מטבעות</th>
+                                        <th class="text-right p-2">מחיר נוכחי</th>
+                                        <th class="text-right p-2">רווח/הפסד לא ממומש</th>
+                                        <th class="text-right p-2">רווח/הפסד ממומש</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="summary-table">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="alerts">
+                <div class="grid-2">
+                    <div class="card">
+                        <h3 class="text-lg font-medium mb-4">הוספת התראת מחיר</h3>
+                        <form id="price-alert-form">
+                            <select id="alertCoin" class="form-select" required>
+                                <option value="">בחר מטבע</option>
+                            </select>
+                            <input type="number" id="alertPrice" class="form-input" placeholder="מחיר יעד (USD)" step="any" required>
+                            <select id="alertType" class="form-select" required>
+                                <option value="above">מעל המחיר</option>
+                                <option value="below">מתחת למחיר</option>
+                            </select>
+                            <button type="submit" class="btn-primary w-full">הוסף התראה</button>
+                        </form>
+                    </div>
+
+                    <div class="card">
+                        <h3 class="text-lg font-medium mb-4">התראות פעילות</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr>
+                                        <th class="text-right p-2">מטבע</th>
+                                        <th class="text-right p-2">מחיר יעד</th>
+                                        <th class="text-right p-2">סוג התראה</th>
+                                        <th class="text-right p-2">פעולות</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="alerts-table">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
