@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מעקב מטבעות קריפטו</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <div id="app" class="p-4 max-w-6xl mx-auto">
+        <div class="tabs">
+            <div class="tabs-list mb-4">
+                <button class="tab-trigger active" data-tab="add">הוספת עסקה</button>
+                <button class="tab-trigger" data-tab="history">היסטוריה</button>
+                <button class="tab-trigger" data-tab="summary">סיכום</button>
+            </div>
+
+            <div class="tab-content active" id="add">
+                <div class="card">
+                    <div class="card-content pt-6">
+                        <form id="transaction-form" class="space-y-4">
+                            <div class="flex gap-4">
+                                <select id="type" class="form-select" required>
+                                    <option value="">סוג עסקה</option>
+                                    <option value="buy">קנייה</option>
+                                    <option value="sell">מכירה</option>
+                                </select>
+
+                                <select id="coin" class="form-select" required>
+                                    <option value="">בחר מטבע</option>
+                                </select>
+                            </div>
+
+                            <input type="number" id="amount" class="form-input" placeholder="כמות מטבעות" step="any" required>
+                            <input type="number" id="totalPrice" class="form-input" placeholder="מחיר כולל (USD)" step="any" required>
+                            <input type="date" id="date" class="form-input" required>
+
+                            <button type="submit" class="btn-primary w-full">הוסף עסקה</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="history">
+                <div class="card">
+                    <div class="card-content pt-6">
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr>
+                                        <th class="text-right p-2">תאריך</th>
+                                        <th class="text-right p-2">מטבע</th>
+                                        <th class="text-right p-2">סוג עסקה</th>
+                                        <th class="text-right p-2">כמות</th>
+                                        <th class="text-right p-2">מחיר כולל</th>
+                                        <th class="text-right p-2">מחיר ליחידה</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="history-table">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="summary">
+                <div class="card">
+                    <div class="card-content pt-6">
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr>
+                                        <th class="text-right p-2">מטבע</th>
+                                        <th class="text-right p-2">ממוצע קנייה</th>
+                                        <th class="text-right p-2">ממוצע מכירה</th>
+                                        <th class="text-right p-2">סה"כ מטבעות</th>
+                                        <th class="text-right p-2">רווח/הפסד</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="summary-table">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
