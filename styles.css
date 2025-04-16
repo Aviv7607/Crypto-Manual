@@ -1,102 +1,157 @@
-.card {
-    background: white;
-    border-radius: 0.5rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    padding: 1rem;
-    margin-bottom: 1rem;
+body {
+    font-family: Arial, sans-serif;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f5f5f5;
 }
-
-.tabs-list {
+h1, h2 {
+    color: #2c3e50;
+    text-align: center;
+}
+.container {
     display: flex;
-    gap: 1rem;
-    border-bottom: 1px solid #e5e7eb;
-    padding-bottom: 0.5rem;
+    justify-content: space-between;
+    gap: 20px;
 }
-
-.tab-trigger {
-    padding: 0.5rem 1rem;
-    border-radius: 0.375rem;
-    cursor: pointer;
-    background: transparent;
-    border: none;
+.players-section {
+    flex: 3;
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
-
-.tab-trigger.active {
-    background: #e5e7eb;
+.top-players-section {
+    flex: 1;
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
-
-.tab-content {
-    display: none;
-}
-
-.tab-content.active {
-    display: block;
-}
-
-.form-select, .form-input {
+table {
     width: 100%;
-    padding: 0.5rem;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.375rem;
-    margin-bottom: 1rem;
+    border-collapse: collapse;
 }
-
-.btn-primary {
-    background: #3b82f6;
+th, td {
+    padding: 12px 15px;
+    text-align: right;
+    border-bottom: 1px solid #ddd;
+}
+th {
+    background-color: #3498db;
     color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 0.375rem;
+}
+tr:hover {
+    background-color: #f1f1f1;
+}
+.score-btn {
+    margin: 0 5px;
+    padding: 5px 10px;
     border: none;
+    border-radius: 3px;
     cursor: pointer;
 }
-
-.btn-primary:hover {
-    background: #2563eb;
+.add-btn {
+    background-color: #2ecc71;
+    color: white;
 }
-
-.btn-delete {
-    color: #dc2626;
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.25rem;
-    border: 1px solid currentColor;
+.subtract-btn {
+    background-color: #e74c3c;
+    color: white;
+}
+.remove-btn {
+    background-color: #e74c3c;
+    color: white;
+    margin-right: 5px;
+}
+.controls {
+    display: flex;
+    margin-top: 20px;
+    justify-content: space-between;
+}
+.add-player-form {
+    display: flex;
+    gap: 10px;
+}
+input[type="text"] {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+button {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    background-color: #3498db;
+    color: white;
     cursor: pointer;
-    background: transparent;
 }
-
-.btn-delete:hover {
-    background: #fee2e2;
+button:hover {
+    background-color: #2980b9;
 }
-
-.alert-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.25rem 0.75rem;
-    border-radius: 9999px;
-    font-size: 0.875rem;
-    color: #1f2937;
-    background: #f3f4f6;
-    margin: 0.25rem;
+.reset-btn {
+    background-color: #e74c3c;
 }
-
-/* צבעי רקע למטבעות */
-.bg-btc { background-color: #fff7ed; }
-.bg-eth { background-color: #faf5ff; }
-.bg-bnb { background-color: #fefce8; }
-.bg-sol { background-color: #eff6ff; }
-.bg-ada { background-color: #f0fdf4; }
-.bg-ftm { background-color: #eef2ff; }
-.bg-pyt { background-color: #fef2f2; }
-.bg-stx { background-color: #fdf2f8; }
-.bg-tia { background-color: #f0fdfa; }
-.bg-etc { background-color: #f9fafb; }
-.bg-algo { background-color: #ecfeff; }
-.bg-hbar { background-color: #f5f3ff; }
-.bg-aave { background-color: #fff1f2; }
-.bg-wld { background-color: #fffbeb; }
-.bg-xrp { background-color: #ecfdf5; }
-
-.grid-2 {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
+.reset-btn:hover {
+    background-color: #c0392b;
+}
+.top-player {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+.top-player:last-child {
+    border-bottom: none;
+}
+.top-player-rank {
+    display: inline-block;
+    width: 25px;
+    height: 25px;
+    line-height: 25px;
+    text-align: center;
+    background-color: #3498db;
+    color: white;
+    border-radius: 50%;
+    margin-left: 10px;
+}
+/* צבעים למקומות הראשונים */
+.rank-1 {
+    background-color: #FFD700; /* זהב */
+    color: #000;
+}
+.rank-2 {
+    background-color: #C0C0C0; /* כסף */
+    color: #000;
+}
+.rank-3 {
+    background-color: #CD7F32; /* ארד */
+    color: #000;
+}
+.top-player-score {
+    float: left;
+    font-weight: bold;
+}
+.max-score {
+    background-color: #f1c40f;
+    color: #000;
+}
+.search-container {
+    margin-bottom: 15px;
+    width: 100%;
+}
+.search-container input {
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+}
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+    .controls {
+        flex-direction: column;
+        gap: 10px;
+    }
+    .add-player-form {
+        flex-direction: column;
+    }
 }

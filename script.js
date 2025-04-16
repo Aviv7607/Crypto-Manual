@@ -1,353 +1,168 @@
-// רשימת המטבעות וצבעים
-let cryptoList = [
-    'BTC', 'ETH', 'BNB', 'SOL', 'ADA', 'FTM', 'PYT', 'STX', 'TIA', 'ETC', 'ALGO', 'HBAR', 'AAVE', 'WLD', 'XRP',
-    'MATIC', 'DOT', 'LINK', 'UNI', 'AVAX', 'ATOM', 'NEAR', 'ICP', 'APT', 'OP', 'ARB', 'INJ', 'SUI', 'SEI'
-];
+// מערך לשמירת השחקנים
+let players = [];
+const MAX_SCORE = 24;
 
-let customColors = {};
-cryptoList.forEach((coin, index) => {
-    customColors[coin] = `bg-${coin.toLowerCase()}`;
+// טעינת נתונים מקומיים בעת טעינת הדף
+document.addEventListener('DOMContentLoaded', function() {
+    loadPlayers();
+    renderPlayers();
+    updateTopPlayers();
+    setupSearch();
 });
 
-// מצב האפליקציה
-let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
-let priceAlerts = JSON.parse(localStorage.getItem('priceAlerts')) || {};
-let currentPrices = {};
-
-// קריאה ל-API של CoinGecko
-async function fetchPrices() {
-    try {
-        const response = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,binancecoin,solana,cardano,fantom,stacks,celestia,ethereum-classic,algorand,hedera-hashgraph,aave,worldcoin,ripple&vs_currencies=usd`);
-        const data = await response.json();
-        
-        const mapping = {
-            'BTC': 'bitcoin',
-            'ETH': 'ethereum',
-            'BNB': 'binancecoin',
-            'SOL': 'solana',
-            'ADA': 'cardano',
-            'FTM': 'fantom',
-            'STX': 'stacks',
-            'TIA': 'celestia',
-            'ETC': 'ethereum-classic',
-            'ALGO': 'algorand',
-            'HBAR': 'hedera-hashgraph',
-            'AAVE': 'aave',
-            'WLD': 'worldcoin',
-            'XRP': 'ripple'
-        };
-
-        cryptoList.forEach(symbol => {
-            const geckoId = mapping[symbol];
-            if (geckoId && data[geckoId]) {
-                currentPrices[symbol] = data[geckoId].usd;
-            }
-        });
-
-        checkPriceAlerts();
-        updateSummaryTable();
-    } catch (error) {
-        console.error('Error fetching prices:', error);
+// טעינת נתוני השחקנים מ-localStorage
+function loadPlayers() {
+    const savedPlayers = localStorage.getItem('players');
+    if (savedPlayers) {
+        players = JSON.parse(savedPlayers);
+    } else {
+        // שחקנים לדוגמה אם אין נתונים שמורים
+        players = [
+            { name: "שחקן 1", score: 0 },
+            { name: "שחקן 2", score: 0 },
+            { name: "שחקן 3", score: 0 }
+        ];
+        savePlayers();
     }
 }
 
-// בדיקת התראות מחיר
-function checkPriceAlerts() {
-    Object.entries(priceAlerts).forEach(([coin, alerts]) => {
-        const currentPrice = currentPrices[coin];
-        if (!currentPrice) return;
-
-        alerts.forEach(alert => {
-            if (!alert.triggered && 
-                ((alert.type === 'above' && currentPrice >= alert.price) ||
-                 (alert.type === 'below' && currentPrice <= alert.price))) {
-                showNotification(`${coin} הגיע למחיר היעד: $${alert.price}`);
-                alert.triggered = true;
-            }
-        });
-    });
-    localStorage.setItem('priceAlerts', JSON.stringify(priceAlerts));
+// שמירת נתוני השחקנים ל-localStorage
+function savePlayers() {
+    localStorage.setItem('players', JSON.stringify(players));
 }
 
-// הצגת התראה
-function showNotification(message) {
-    if (Notification.permission === 'granted') {
-        new Notification('התראת מחיר', { body: message });
-    } else if (Notification.permission !== 'denied') {
-        Notification.requestPermission().then(permission => {
-            if (permission === 'granted') {
-                new Notification('התראת מחיר', { body: message });
-            }
-        });
-    }
-}
+// הצגת השחקנים בטבלה
+function renderPlayers(filteredPlayers = null) {
+    const playersList = document.getElementById('players-list');
+    playersList.innerHTML = '';
 
-// אתחול הטופס
-function initializeForm() {
-    const coinSelect = document.getElementById('coin');
-    const alertCoinSelect = document.getElementById('alertCoin');
-    
-    [coinSelect, alertCoinSelect].forEach(select => {
-        if (select) {
-            select.innerHTML = '<option value="">בחר מטבע</option>';
-            cryptoList.forEach(coin => {
-                const option = document.createElement('option');
-                option.value = coin;
-                option.textContent = coin;
-                select.appendChild(option);
-            });
-        }
-    });
+    const playersToRender = filteredPlayers || players;
 
-    const dateInput = document.getElementById('date');
-    if (dateInput) {
-        dateInput.valueAsDate = new Date();
-    }
-}
+    playersToRender.forEach((player, index) => {
+        // חישוב האינדקס המקורי במערך השחקנים
+        const originalIndex = filteredPlayers ? players.findIndex(p => p.name === player.name) : index;
 
-// ניהול טאבים
-function setupTabs() {
-    const triggers = document.querySelectorAll('.tab-trigger');
-    const contents = document.querySelectorAll('.tab-content');
-
-    triggers.forEach(trigger => {
-        trigger.addEventListener('click', () => {
-            const tabId = trigger.getAttribute('data-tab');
-            
-            triggers.forEach(t => t.classList.remove('active'));
-            contents.forEach(c => c.classList.remove('active'));
-            
-            trigger.classList.add('active');
-            document.getElementById(tabId).classList.add('active');
-            
-            if (tabId === 'history') updateHistoryTable();
-            if (tabId === 'summary') updateSummaryTable();
-            if (tabId === 'alerts') updateAlertsTable();
-        });
-    });
-}
-
-// הוספת מטבע חדש
-function handleNewCoin(e) {
-    e.preventDefault();
-    const symbol = document.getElementById('newCoinSymbol').value.toUpperCase();
-    if (symbol && !cryptoList.includes(symbol)) {
-        cryptoList.push(symbol);
-        customColors[symbol] = 'bg-gray-100';
-        localStorage.setItem('customCoins', JSON.stringify(cryptoList));
-        initializeForm();
-    }
-    e.target.reset();
-}
-
-// הוספת התראת מחיר
-function handlePriceAlert(e) {
-    e.preventDefault();
-    const coin = document.getElementById('alertCoin').value;
-    const price = parseFloat(document.getElementById('alertPrice').value);
-    const type = document.getElementById('alertType').value;
-
-    if (!priceAlerts[coin]) priceAlerts[coin] = [];
-    priceAlerts[coin].push({ price, type, triggered: false });
-    localStorage.setItem('priceAlerts', JSON.stringify(priceAlerts));
-    updateAlertsTable();
-    e.target.reset();
-}
-
-// הוספת עסקה חדשה
-function handleTransaction(e) {
-    e.preventDefault();
-    
-    const formData = {
-        type: document.getElementById('type').value,
-        coin: document.getElementById('coin').value,
-        amount: parseFloat(document.getElementById('amount').value),
-        totalPrice: parseFloat(document.getElementById('totalPrice').value),
-        date: document.getElementById('date').value,
-        id: Date.now()
-    };
-
-    transactions.push(formData);
-    localStorage.setItem('transactions', JSON.stringify(transactions));
-    
-    e.target.reset();
-    document.getElementById('date').valueAsDate = new Date();
-    
-    updateHistoryTable();
-    updateSummaryTable();
-}
-
-// עדכון טבלת היסטוריה
-function updateHistoryTable() {
-    const tableBody = document.getElementById('history-table');
-    if (!tableBody) return;
-    
-    tableBody.innerHTML = '';
-
-    transactions
-        .sort((a, b) => new Date(b.date) - new Date(a.date))
-        .forEach(transaction => {
-            const row = document.createElement('tr');
-            row.className = customColors[transaction.coin] || 'bg-gray-100';
-            
-            row.innerHTML = `
-                <td class="p-2">${transaction.date}</td>
-                <td class="p-2">${transaction.coin}</td>
-                <td class="p-2">${transaction.type === 'buy' ? 'קנייה' : 'מכירה'}</td>
-                <td class="p-2">${transaction.amount}</td>
-                <td class="p-2">$${transaction.totalPrice}</td>
-                <td class="p-2">$${(transaction.totalPrice / transaction.amount).toFixed(2)}</td>
-                <td class="p-2">
-                    <button onclick="deleteTransaction(${transaction.id})" class="btn-delete">
-                        מחק
-                    </button>
-                </td>
-            `;
-            
-            tableBody.appendChild(row);
-        });
-}
-
-// חישוב סטטיסטיקות
-function calculateStats() {
-    const stats = {};
-    
-    cryptoList.forEach(coin => {
-        const coinTransactions = transactions.filter(t => t.coin === coin);
-        const buys = coinTransactions.filter(t => t.type === 'buy');
-        const sells = coinTransactions.filter(t => t.type === 'sell');
-        
-        const totalBuyAmount = buys.reduce((acc, curr) => acc + curr.amount, 0);
-        const totalBuyPrice = buys.reduce((acc, curr) => acc + curr.totalPrice, 0);
-        
-        stats[coin] = {
-            avgBuy: totalBuyAmount ? totalBuyPrice / totalBuyAmount : 0,
-            avgSell: sells.length ? sells.reduce((acc, curr) => acc + curr.totalPrice/curr.amount, 0) / sells.length : 0,
-            totalCoins: totalBuyAmount - sells.reduce((acc, curr) => acc + curr.amount, 0),
-            profitLoss: sells.reduce((acc, curr) => acc + curr.totalPrice, 0) - 
-                       sells.reduce((acc, curr) => acc + (curr.amount * (totalBuyAmount ? totalBuyPrice / totalBuyAmount : 0)), 0)
-        };
-    });
-    
-    return stats;
-}
-
-// עדכון טבלת סיכום
-function updateSummaryTable() {
-    const tableBody = document.getElementById('summary-table');
-    if (!tableBody) return;
-    
-    tableBody.innerHTML = '';
-    
-    const stats = calculateStats();
-    
-    Object.entries(stats).forEach(([coin, stat]) => {
-        if (stat.totalCoins === 0 && stat.profitLoss === 0) return;
-        
-        const currentPrice = currentPrices[coin] || 0;
-        const currentValue = stat.totalCoins * currentPrice;
-        const totalInvestment = stat.avgBuy * stat.totalCoins;
-        const unrealizedPL = currentValue - totalInvestment;
-        
         const row = document.createElement('tr');
-        row.className = customColors[coin] || 'bg-gray-100';
-        
         row.innerHTML = `
-            <td class="p-2">${coin}</td>
-            <td class="p-2">$${stat.avgBuy.toFixed(2)}</td>
-            <td class="p-2">$${stat.avgSell.toFixed(2)}</td>
-            <td class="p-2">${stat.totalCoins.toFixed(4)}</td>
-            <td class="p-2">$${currentPrice.toFixed(2)}</td>
-            <td class="p-2 ${unrealizedPL >= 0 ? 'text-green-600' : 'text-red-600'}">
-                $${unrealizedPL.toFixed(2)}
-            </td>
-            <td class="p-2 ${stat.profitLoss >= 0 ? 'text-green-600' : 'text-red-600'}">
-                $${stat.profitLoss.toFixed(2)}
+            <td>${player.name}</td>
+            <td class="${player.score >= MAX_SCORE ? 'max-score' : ''}">${player.score}</td>
+            <td>
+                <button class="score-btn add-btn" onclick="updateScore(${originalIndex}, 1)">+</button>
+                <button class="score-btn subtract-btn" onclick="updateScore(${originalIndex}, -1)">-</button>
+                <button class="remove-btn" onclick="removePlayer(${originalIndex})">הסר</button>
             </td>
         `;
-        
-        tableBody.appendChild(row);
+        playersList.appendChild(row);
     });
 }
 
-// עדכון טבלת התראות
-function updateAlertsTable() {
-    const tableBody = document.getElementById('alerts-table');
-    if (!tableBody) return;
-    
-    tableBody.innerHTML = '';
-
-    Object.entries(priceAlerts).forEach(([coin, alerts]) => {
-        alerts.forEach((alert, index) => {
-            const row = document.createElement('tr');
-            row.className = customColors[coin] || 'bg-gray-100';
-            
-            row.innerHTML = `
-                <td class="p-2">${coin}</td>
-                <td class="p-2">$${alert.price}</td>
-                <td class="p-2">${alert.type === 'above' ? 'מעל' : 'מתחת'}</td>
-                <td class="p-2">
-                    <button onclick="removeAlert('${coin}', ${index})" class="btn-delete">
-                        מחק
-                    </button>
-                </td>
-            `;
-            
-            tableBody.appendChild(row);
-        });
-    });
-}
-
-// מחיקת התראת מחיר
-function removeAlert(coin, index) {
-    if (priceAlerts[coin]) {
-        priceAlerts[coin].splice(index, 1);
-        if (priceAlerts[coin].length === 0) {
-            delete priceAlerts[coin];
-        }
-        localStorage.setItem('priceAlerts', JSON.stringify(priceAlerts));
-        updateAlertsTable();
+// עדכון ניקוד של שחקן
+function updateScore(index, amount) {
+    const newScore = players[index].score + amount;
+    // וידוא שהניקוד אינו שלילי ואינו מעל 24
+    if (newScore >= 0 && newScore <= MAX_SCORE) {
+        players[index].score = newScore;
+        savePlayers();
+        renderPlayers();
+        updateTopPlayers();
     }
 }
 
-// מחיקת עסקה
-function deleteTransaction(id) {
-    transactions = transactions.filter(t => t.id !== id);
-    localStorage.setItem('transactions', JSON.stringify(transactions));
-    updateHistoryTable();
-    updateSummaryTable();
+// הסרת שחקן
+function removePlayer(index) {
+    if (confirm(`האם אתה בטוח שברצונך להסיר את השחקן "${players[index].name}"?`)) {
+        players.splice(index, 1);
+        savePlayers();
+        renderPlayers();
+        updateTopPlayers();
+    }
 }
 
-// אתחול האפליקציה
-document.addEventListener('DOMContentLoaded', () => {
-    // אתחול טפסים וטאבים
-    initializeForm();
-    setupTabs();
+// עדכון רשימת המובילים
+function updateTopPlayers() {
+    const topPlayersList = document.getElementById('top-players-list');
+    topPlayersList.innerHTML = '';
+
+    // מיון השחקנים לפי ניקוד
+    const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
     
-    // הוספת מאזינים לטפסים
-    const transactionForm = document.getElementById('transaction-form');
-    const newCoinForm = document.getElementById('new-coin-form');
-    const priceAlertForm = document.getElementById('price-alert-form');
+    // הצגת ה-TOP 15 בלבד
+    const topPlayers = sortedPlayers.slice(0, 15);
     
-    if (transactionForm) transactionForm.addEventListener('submit', handleTransaction);
-    if (newCoinForm) newCoinForm.addEventListener('submit', handleNewCoin);
-    if (priceAlertForm) priceAlertForm.addEventListener('submit', handlePriceAlert);
+    topPlayers.forEach((player, index) => {
+        const playerElement = document.createElement('div');
+        playerElement.className = 'top-player';
+        
+        const rankSpan = document.createElement('span');
+        rankSpan.className = 'top-player-rank';
+        
+        // הוספת קלאס למקומות 1-3
+        if (index === 0) {
+            rankSpan.classList.add('rank-1'); // זהב
+        } else if (index === 1) {
+            rankSpan.classList.add('rank-2'); // כסף
+        } else if (index === 2) {
+            rankSpan.classList.add('rank-3'); // ארד
+        }
+        
+        rankSpan.textContent = index + 1;
+        
+        const scoreSpan = document.createElement('span');
+        scoreSpan.className = 'top-player-score';
+        scoreSpan.textContent = player.score;
+        
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = player.name;
+        
+        playerElement.appendChild(rankSpan);
+        playerElement.appendChild(nameSpan);
+        playerElement.appendChild(scoreSpan);
+        
+        topPlayersList.appendChild(playerElement);
+    });
+}
+
+// הגדרת פונקציונליות חיפוש
+function setupSearch() {
+    const searchInput = document.getElementById('player-search');
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.trim().toLowerCase();
+        
+        if (searchTerm === '') {
+            renderPlayers(); // הצג את כל השחקנים אם תיבת החיפוש ריקה
+        } else {
+            // סנן את השחקנים לפי מונח החיפוש
+            const filteredPlayers = players.filter(player => 
+                player.name.toLowerCase().includes(searchTerm)
+            );
+            renderPlayers(filteredPlayers);
+        }
+    });
+}
+
+// הוספת שחקן חדש
+document.getElementById('add-player-btn').addEventListener('click', function() {
+    const nameInput = document.getElementById('new-player-name');
+    const name = nameInput.value.trim();
     
-    // עדכון טבלאות
-    updateHistoryTable();
-    updateSummaryTable();
-    updateAlertsTable();
-    
-    // התחלת מעקב מחירים
-    fetchPrices();
-    setInterval(fetchPrices, 60000); // עדכון כל דקה
-    
-    // בקשת הרשאה להתראות
-    Notification.requestPermission();
-    
-    // טעינת מטבעות מותאמים אישית
-    const savedCoins = localStorage.getItem('customCoins');
-    if (savedCoins) {
-        cryptoList = JSON.parse(savedCoins);
+    if (name) {
+        players.push({ name: name, score: 0 });
+        savePlayers();
+        renderPlayers();
+        updateTopPlayers();
+        nameInput.value = '';
+    }
+});
+
+// איפוס הטבלה
+document.getElementById('reset-btn').addEventListener('click', function() {
+    if (confirm('האם אתה בטוח שברצונך לאפס את כל הניקוד? פעולה זו לא ניתנת לביטול.')) {
+        // אפס את הניקוד אך שמור את השמות
+        players.forEach(player => {
+            player.score = 0;
+        });
+        savePlayers();
+        renderPlayers();
+        updateTopPlayers();
     }
 });
